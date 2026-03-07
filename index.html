@@ -16,6 +16,7 @@
     --secondary: #64748b;
     --success: #10b981;
     --danger: #ef4444;
+    --warning: #f59e0b;
     --bg-color: #f1f5f9;
     --card-bg: #ffffff;
     --text-main: #1e293b;
@@ -31,11 +32,13 @@ body{
     color: var(--text-main);
 }
 
+/* Container Utama */
 .container {
     max-width: 1400px;
     margin: 0 auto;
 }
 
+/* Header Modern */
 .header-content {
     display: flex;
     align-items: center;
@@ -64,6 +67,7 @@ body{
     font-size: 14px;
 }
 
+/* Card Style */
 .card {
     background: var(--card-bg);
     border-radius: 12px;
@@ -73,6 +77,7 @@ body{
     margin-bottom: 20px;
 }
 
+/* Tabs Modern */
 .tabs{
     display:flex;
     background: #f8fafc;
@@ -114,6 +119,7 @@ body{
     display:block;
 }
 
+/* Table Modern */
 .table-container {
     width: 100%;
     overflow-x: auto;
@@ -151,6 +157,7 @@ tr:hover {
     background: #f8fafc;
 }
 
+/* Total Row Styling */
 td.total-label {
     background: #f1f5f9;
     font-weight: 700;
@@ -169,6 +176,7 @@ td.total-value {
     font-size: 14px;
 }
 
+/* Input & Buttons */
 input[type="text"], input[type="file"] {
     padding: 10px 14px;
     font-size: 13px;
@@ -238,6 +246,16 @@ button {
     background: #dc2626;
 }
 
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+}
+
 .btn-secondary {
     background: #e2e8f0;
     color: #475569;
@@ -247,6 +265,7 @@ button {
     background: #cbd5e1;
 }
 
+/* Editable Cells */
 td[contenteditable]{
     background:#fff;
     border: 1px dashed #cbd5e1;
@@ -265,6 +284,7 @@ tr.new-row td[contenteditable]{
     border-color: var(--success);
 }
 
+/* File Input Styling */
 .file-upload-wrapper {
     position: relative;
     overflow: hidden;
@@ -302,8 +322,8 @@ tr.new-row td[contenteditable]{
     <div class="header-content">
         <i class="fas fa-warehouse"></i>
         <div>
-            <h3>Manajemen Data Sparepart Bekas</h3>
-            <p>Upload, kelola, sparepart bekas Anda secara efisien.</p>
+            <h3>Manajemen Data Sparepart</h3>
+            <p>Upload, kelola, dan unduh data inventaris Anda secara efisien.</p>
         </div>
     </div>
 
@@ -315,6 +335,12 @@ tr.new-row td[contenteditable]{
 
         <!-- TAB 1 -->
         <div id="tab1" class="tab-content active">
+            
+            <!-- Grup Tombol Atas -->
+            <div class="btn-group" style="margin-bottom: 10px;">
+                <button class="btn-warning" id="resetBtn"><i class="fas fa-sync-alt"></i> Reset Data</button>
+            </div>
+
             <div class="file-upload-wrapper">
                 <input type="file" id="fileInput" accept=".xlsx, .xls, .csv">
             </div>
@@ -402,6 +428,7 @@ tr.new-row td[contenteditable]{
     const search1 = document.getElementById("search1");
     const search2 = document.getElementById("search2");
     const addRowBtn = document.getElementById("addRowBtn");
+    const resetBtn = document.getElementById("resetBtn"); // Tombol Reset
 
     const table1 = document.querySelector("#table1 tbody");
     const table2 = document.querySelector("#table2 tbody");
@@ -417,6 +444,22 @@ tr.new-row td[contenteditable]{
             btn.classList.add("active");
             document.getElementById(btn.dataset.tab).classList.add("active");
         });
+    });
+
+    // --- LOGIKA RESET DATA ---
+    resetBtn.addEventListener("click", () => {
+        // Konfirmasi sederhana (opsional)
+        if(confirm("Apakah Anda yakin ingin mereset semua data?")) {
+            data1 = [];
+            data2 = [];
+            table1.innerHTML = "";
+            table2.innerHTML = "";
+            totalQty1.innerText = "0";
+            totalQty2.innerText = "0";
+            fileInput.value = ""; // Hapus file input
+            search1.value = ""; // Hapus search
+            search2.value = "";
+        }
     });
 
     // --- LOGIKA UPLOAD FILE ---
@@ -578,7 +621,7 @@ tr.new-row td[contenteditable]{
         XLSX.writeFile(wb, "sparepart_data.xlsx");
     };
 
-    // --- DOWNLOAD PDF (HEADER TENGAH, DATA NORMAL) ---
+    // --- DOWNLOAD PDF ---
     document.getElementById("pdf").onclick = () => {
         if (data2.length === 0) return alert("Tidak ada data untuk diunduh.");
 
@@ -590,7 +633,7 @@ tr.new-row td[contenteditable]{
 
         doc.setFontSize(18);
         doc.setTextColor(40);
-        doc.text("Laporan Data Sparepart Bekas", 14, 20);
+        doc.text("Laporan Data Sparepart", 14, 20);
         
         doc.autoTable({
             head: [col],
@@ -612,17 +655,16 @@ tr.new-row td[contenteditable]{
                 fontStyle: "bold",
                 lineColor: 0,
                 lineWidth: 0.5,
-                halign: 'center' // <--- INI MEMBUAT SEMUA HEADER TENGAH
+                halign: 'center'
             },
             columnStyles: {
-                0: { halign: 'center' }, // Kolom Nomor (Data & Header)
-                3: { halign: 'center' }  // Kolom Qty (Data & Header)
+                0: { halign: 'center' },
+                3: { halign: 'center' }
             },
             didParseCell: function (data) {
                 if (data.row.index === rows.length) {
                     data.cell.styles.fillColor = [240, 240, 240];
                     data.cell.styles.fontStyle = "bold";
-                    // Pastikan total Qty juga di tengah
                     if(data.column.index === 3) {
                         data.cell.styles.halign = 'center';
                     }
