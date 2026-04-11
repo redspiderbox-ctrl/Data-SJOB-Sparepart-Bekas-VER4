@@ -620,7 +620,7 @@
         
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "PartDemand_ExtractedSJOB");
-        XLSX.writeFile(workbook, `AfterSales_GoodsTransaction_TEMPLATES{new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+        XLSX.writeFile(workbook, `AfterSales_GoodsTransaction_TEMPLATE{new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
     }
 
     // ------------------- UPLOAD & PARSE FILE -------------------
