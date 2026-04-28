@@ -1,691 +1,974 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Part Manager - Upload & Download Excel | Auto Extract SJOB</title>
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- SheetJS untuk Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Manajemen Sparepart Bekas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --primary-light: #dbeafe;
+    --primary-subtle: #f0f9ff;
+    --secondary: #64748b;
+    --success: #10b981;
+    --success-dark: #059669;
+    --success-light: #ecfdf5;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
+    --warning: #f59e0b;
+    --warning-dark: #d97706;
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-body: #334155;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --border-light: #cbd5e1;
+    --hover-bg: #f8fafc;
+}
 
-        body {
-            background: linear-gradient(145deg, #eef2f7 0%, #dce5ef 100%);
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            padding: 1.8rem 1.2rem;
-            color: #1e2f3e;
-        }
+*, *::before, *::after { box-sizing: border-box; }
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 1.8rem;
-            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;
+}
 
-        .page-header {
-            background: #0a2f44;
-            padding: 1.4rem 2rem;
-            color: white;
-            border-bottom: 4px solid #f5b042;
-        }
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
 
-        .page-header h1 {
-            font-weight: 600;
-            font-size: 1.7rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+.container { max-width: 1600px; margin: 0 auto; }
 
-        .page-header h1 i {
-            color: #f5b042;
-        }
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 4px 0;
+}
 
-        .page-header p {
-            margin-top: 6px;
-            opacity: 0.85;
-            font-size: 0.9rem;
-        }
+.header-icon {
+    font-size: 26px;
+    color: var(--primary);
+    background: var(--primary-light);
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    flex-shrink: 0;
+}
 
-        .content {
-            padding: 2rem;
-        }
+.header-text h3 { margin: 0; font-size: 22px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; }
+.header-text p { margin: 4px 0 0 0; color: var(--text-muted); font-size: 13px; font-weight: 400; }
 
-        .card-panel {
-            background: #f9fbfe;
-            border-radius: 1.2rem;
-            padding: 1.3rem 1.8rem;
-            margin-bottom: 2rem;
-            border: 1px solid #e2edf7;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-        }
+.card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
 
-        .flex-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: flex-end;
-            margin-top: 0.8rem;
-        }
+.tabs {
+    display: flex;
+    background: var(--hover-bg);
+    padding: 8px 12px 0 12px;
+    border-bottom: 1px solid var(--border-color);
+    gap: 4px;
+    flex-wrap: wrap;
+}
 
-        .file-group {
-            flex: 2;
-            min-width: 240px;
-        }
+.tab-button {
+    padding: 11px 22px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 8px 8px 0 0;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    font-family: inherit;
+}
 
-        .file-label {
-            background: white;
-            border: 1px solid #cbdde9;
-            border-radius: 40px;
-            padding: 0.55rem 1.3rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-block;
-            transition: 0.2s;
-        }
+.tab-button:hover { color: var(--primary); background: rgba(37,99,235,0.04); }
+.tab-button:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.tab-button.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--card-bg); }
 
-        .file-label i {
-            margin-right: 8px;
-            color: #2c6e9e;
-        }
+.tab-content { display: none; padding: 20px; background: var(--card-bg); animation: fadeIn 0.2s ease; }
+.tab-content.active { display: block; }
 
-        .file-label:hover {
-            background: #eef3fc;
-            border-color: #2c6e9e;
-        }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        input[type="file"] {
-            display: none;
-        }
+.btn-group { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
 
-        .file-name {
-            margin-left: 12px;
-            font-size: 0.8rem;
-            background: #eef2f6;
-            padding: 0.35rem 1rem;
-            border-radius: 30px;
-            display: inline-block;
-        }
+button {
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    user-select: none;
+    font-family: inherit;
+    line-height: 1.4;
+}
 
-        .btn {
-            border: none;
-            padding: 0.6rem 1.5rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.2s;
-        }
+button:active { transform: scale(0.97); }
+button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
-        .btn-primary {
-            background: #1f6392;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #0f4a6e;
-            transform: translateY(-1px);
-        }
-        .btn-success {
-            background: #2a7f49;
-            color: white;
-        }
-        .btn-success:hover {
-            background: #1e5f36;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #b9cfe4;
-            color: #1f6392;
-        }
-        .btn-outline:hover {
-            background: #eaf3fc;
-        }
-        .btn-warning {
-            background: #c2410c;
-            color: white;
-        }
-        .btn-warning:hover {
-            background: #9a3412;
-        }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: var(--success-dark); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-dark); }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-warning:hover { background: var(--warning-dark); }
+.btn-secondary { background: var(--border-color); color: #475569; }
+.btn-secondary:hover { background: var(--border-light); }
+.btn-group-info { margin-left: auto; font-size: 12px; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; padding: 0; box-shadow: none; cursor: default; background: none; }
+.badge { background: var(--primary-light); color: var(--primary); font-weight: 700; padding: 2px 9px; border-radius: 20px; font-size: 11px; }
 
-        .info-banner {
-            background: #eef4fa;
-            padding: 0.7rem 1rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            margin-top: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+input[type="text"], select {
+    display: block;
+    font-size: 13px;
+    font-family: inherit;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    color: var(--text-main);
+}
 
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: 1.2rem;
-            border: 1px solid #e2edf5;
-            background: white;
-            margin-top: 1rem;
-        }
+input[type="text"] {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    margin-bottom: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 13px center;
+}
 
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            min-width: 1150px;
-        }
+select {
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    font-weight: 500;
+}
 
-        .data-table th {
-            background: #1e3a4d;
-            color: white;
-            padding: 12px 8px;
-            text-align: center;
-            border-right: 1px solid #2f627c;
-            font-weight: 600;
-        }
+input[type="text"]:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+input[type="text"]::placeholder { color: var(--border-light); }
 
-        .data-table td {
-            border-bottom: 1px solid #e2edf2;
-            padding: 10px 8px;
-            background-color: #fff;
-            vertical-align: middle;
-        }
+.filter-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 
-        .data-table td:not(:first-child) {
-            text-align: center;
-        }
-        
-        .data-table td:first-child {
-            text-align: left;
-            font-weight: 500;
-            padding-left: 12px;
-        }
-        
-        .data-table th:first-child {
-            text-align: left;
-            padding-left: 12px;
-        }
+@media (max-width: 1100px) { .filter-grid { grid-template-columns: 1fr 1fr 1fr; } }
+@media (max-width: 700px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 500px) { .filter-grid { grid-template-columns: 1fr; } }
+.filter-grid > * { margin-bottom: 0 !important; min-width: 0; }
 
-        .data-table tr:hover td {
-            background-color: #fef7e0;
-        }
+.file-upload-wrapper { position: relative; margin-bottom: 16px; }
+.file-upload-wrapper input[type="file"] {
+    display: block; width: 100%; padding: 22px 16px; font-size: 13px; font-family: inherit; cursor: pointer;
+    background: var(--hover-bg); border: 2px dashed var(--border-light); border-radius: 10px;
+    transition: border-color 0.2s, background 0.2s; color: var(--text-muted);
+}
+.file-upload-wrapper input[type="file"]::file-selector-button {
+    padding: 8px 18px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg);
+    color: var(--text-main); font-weight: 600; font-size: 12px; cursor: pointer; margin-right: 14px;
+    transition: background 0.15s, border-color 0.15s; font-family: inherit;
+}
+.file-upload-wrapper input[type="file"]::file-selector-button:hover { background: var(--hover-bg); border-color: var(--primary); }
+.file-upload-wrapper input[type="file"]:hover { border-color: var(--primary); background: var(--primary-subtle); }
 
-        .empty-row td {
-            text-align: center !important;
-            color: #8ba0ae;
-            padding: 2rem;
-        }
+.table-container { width: 100%; overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 0; -webkit-overflow-scrolling: touch; }
+table { border-collapse: collapse; width: 100%; white-space: nowrap; border: none; }
+thead th {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); color: var(--text-main); font-size: 10.5px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid var(--border-color);
+    padding: 11px 12px; text-align: left; position: sticky; top: 0; z-index: 2;
+}
+tbody td { font-size: 12px; padding: 9px 12px; border-bottom: 1px solid var(--border-color); color: var(--text-body); transition: background 0.1s; }
+tbody tr:hover td { background: var(--hover-bg); }
+.col-check { width: 44px; text-align: center; }
+.col-no { width: 52px; text-align: center; }
+.col-action { width: 56px; text-align: center; }
+.cb-cell { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
 
-        .sjob-highlight {
-            background-color: #ffedd5;
-            font-weight: 600;
-            color: #9a3412;
-            border-radius: 24px;
-            padding: 4px 12px;
-            display: inline-block;
-            font-size: 0.8rem;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
+td[contenteditable] {
+    background: var(--card-bg); border: 1px solid transparent; border-radius: 4px;
+    transition: background 0.15s, border-color 0.15s; outline: none; cursor: text;
+}
+td[contenteditable]:hover { border-color: var(--border-light); }
+td[contenteditable]:focus { background: var(--primary-subtle); border-color: var(--primary); }
 
-        .action-icons i {
-            margin: 0 5px;
-            cursor: pointer;
-            color: #7f8c8d;
-            transition: 0.1s;
-        }
-        .action-icons i:hover {
-            color: #d9534f;
-        }
+td.no-urut {
+    font-weight: 700; color: var(--primary); text-align: center;
+    background: var(--primary-subtle); width: 52px; cursor: default;
+}
+td.days-count {
+    background: #f8fafc; color: var(--primary); font-weight: 600; text-align: center;
+    cursor: default; border: 1px solid transparent;
+}
 
-        .summary-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
+tr.selected-row td { background: var(--primary-subtle) !important; }
+tr.selected-row td[contenteditable]:focus { background: #e0f2fe; }
+tr.new-row td { background: var(--success-light); }
+tr.new-row td[contenteditable] { border-color: var(--success); background: var(--success-light); }
+tr.new-row td[contenteditable]:focus { background: #d1fae5; }
 
-        .badge-count {
-            background: #eef2fa;
-            padding: 5px 14px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-        }
+tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--border-color); }
+.total-label { background: #f1f5f9; font-weight: 700; text-align: right; color: var(--text-main); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.total-value { background: var(--success-light); font-weight: 800; color: var(--success); font-size: 14px; letter-spacing: -0.01em; }
 
-        footer {
-            font-size: 0.7rem;
-            text-align: center;
-            padding: 1rem;
-            background: #f4f9fe;
-            border-top: 1px solid #e2edf5;
-            color: #4a6f8a;
-        }
-        
-        .code-sample {
-            font-family: monospace;
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 12px;
-        }
-    </style>
+.manual-notes-section { margin-top: 22px; padding-top: 18px; border-top: 2px dashed var(--border-color); }
+.notes-header { font-weight: 700; color: var(--secondary); margin-bottom: 14px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.note-row { display: flex; align-items: flex-start; margin-bottom: 8px; gap: 10px; }
+.note-num { width: 22px; font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: right; padding-top: 5px; flex-shrink: 0; }
+.note-input {
+    flex-grow: 1; border: 1px solid transparent; border-bottom: 1px solid var(--border-color); padding: 6px 8px;
+    font-size: 12px; font-family: inherit; outline: none; background: transparent; color: var(--text-body);
+    border-radius: 4px 4px 0 0; transition: border-color 0.15s, background 0.15s; min-height: 30px; line-height: 1.5;
+}
+.note-input:focus { border-color: var(--primary); background: var(--primary-subtle); }
+.note-input:empty::before { content: attr(data-placeholder); color: var(--border-light); pointer-events: none; }
+
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column-reverse; gap: 10px; pointer-events: none; }
+.toast {
+    background: var(--text-main); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; pointer-events: auto;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; max-width: 360px; font-family: 'Segoe UI', sans-serif; line-height: 1.4;
+}
+.toast i { font-size: 16px; flex-shrink: 0; }
+.toast.toast-success { border-left: 4px solid var(--success); }
+.toast.toast-success i { color: var(--success); }
+.toast.toast-danger { border-left: 4px solid var(--danger); }
+.toast.toast-danger i { color: var(--danger); }
+.toast.toast-info { border-left: 4px solid var(--primary); }
+.toast.toast-info i { color: var(--primary-light); }
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(8px) scale(0.96); } }
+
+.empty-state { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+.empty-state i { font-size: 40px; margin-bottom: 12px; opacity: 0.3; display: block; }
+.empty-state p { font-size: 13px; margin: 0; }
+
+@media (max-width: 768px) {
+    body { padding: 12px; }
+    .header-content { gap: 12px; }
+    .header-icon { width: 48px; height: 48px; font-size: 22px; }
+    .header-text h3 { font-size: 18px; }
+    .tab-content { padding: 14px; }
+    .tab-button { padding: 9px 14px; font-size: 12px; gap: 6px; }
+    .btn-group { gap: 6px; }
+    button { padding: 8px 12px; font-size: 12px; }
+    .btn-group-info { display: none; }
+    .toast-container { left: 12px; right: 12px; bottom: 12px; }
+    .toast { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+</style>
 </head>
 <body>
+
 <div class="container">
-    <div class="page-header">
-        <h1>
-            <i class="fas fa-cut"></i> 
-            Auto-Extract SJOB ( Service Job )
-        </h1>
-        <p><i class="fas fa-filter"></i> <strong>Auto-Extract SJOB:</strong> Olah Data Service Job. <i class="fas fa-check-circle"></i> <strong>Sistem akan membuatnya secara otomatis.</strong></p>
-    </div>
+    <header class="header-content">
+        <div class="header-icon"><i class="fas fa-warehouse"></i></div>
+        <div class="header-text">
+            <h3>Manajemen Data Sparepart Bekas</h3>
+            <p>Upload, Kelola, Konversi, dan Unduh Data Sparepart Bekas Anda secara efisien.</p>
+        </div>
+    </header>
 
-    <div class="content">
-        <div class="card-panel">
-            <div style="font-weight: 600; margin-bottom: 8px;"><i class="fas fa-upload"></i> Unggah Data (Excel / CSV)</div>
-            <div class="flex-row">
-                <div class="file-group">
-                    <label class="file-label" for="fileInput">
-                        <i class="fas fa-folder-open"></i> Pilih File
-                    </label>
-                    <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .json">
-                    <span id="fileNameDisplay" class="file-name">Belum ada file</span>
+    <div class="card">
+        <nav class="tabs" role="tablist" aria-label="Navigasi utama">
+            <button class="tab-button active" data-tab="tab1" role="tab" aria-selected="true" aria-controls="tab1"><i class="fas fa-upload"></i> Import Data</button>
+            <button class="tab-button" data-tab="tab2" role="tab" aria-selected="false" aria-controls="tab2"><i class="fas fa-file-export"></i> Proses & Export</button>
+            <button class="tab-button" data-tab="tab3" role="tab" aria-selected="false" aria-controls="tab3"><i class="fas fa-exchange-alt"></i> Extract SJOB</button>
+            <button class="tab-button" data-tab="tab4" role="tab" aria-selected="false" aria-controls="tab4"><i class="fas fa-boxes"></i> Surat Jalan</button>
+            <button class="tab-button" data-tab="tab5" role="tab" aria-selected="false" aria-controls="tab5"><i class="fas fa-truck-loading"></i> Surat Jalan 2</button>
+        </nav>
+
+        <!-- TAB 1 -->
+        <section id="tab1" class="tab-content active" role="tabpanel">
+            <div class="btn-group">
+                <button class="btn-warning" id="resetBtn" aria-label="Reset semua data"><i class="fas fa-sync-alt"></i> Reset Data</button>
+                <button class="btn-danger" id="deleteSelectedBtn" aria-label="Hapus baris terpilih"><i class="fas fa-trash-alt"></i> Hapus Terpilih</button>
+                <span class="btn-group-info"><span class="badge" id="dataCountBadge">0</span> baris data</span>
+            </div>
+            <div class="file-upload-wrapper">
+                <label for="fileInput" class="sr-only">Pilih file Excel atau CSV</label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" aria-label="Upload file Excel atau CSV">
+            </div>
+            
+            <div class="filter-grid">
+                <div style="position:relative;">
+                    <label for="search1" class="sr-only">Cari Umum</label>
+                    <input type="text" id="search1" placeholder="Cari umum (Part, Serial, Catatan...)" style="margin-bottom:0;">
                 </div>
-                <button id="uploadBtn" class="btn btn-primary"><i class="fas fa-cloud-upload-alt"></i> Muat & Ekstrak SJOB</button>
-                <button id="clearAllBtn" class="btn btn-warning"><i class="fas fa-trash-can"></i> Hapus Semua</button>
+                <div>
+                    <label for="filterTeknisi" class="sr-only">Filter Teknisi</label>
+                    <select id="filterTeknisi" style="margin-bottom:0; width:100%;">
+                        <option value="">Semua Teknisi</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterPengiriman" class="sr-only">Filter Status Pengiriman</label>
+                    <select id="filterPengiriman" style="margin-bottom:0; width:100%;">
+                        <option value="">Semua Status Pengiriman</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterReturn" class="sr-only">Filter Return</label>
+                    <select id="filterReturn" style="margin-bottom:0; width:100%;">
+                        <option value="">Semua Status Return</option>
+                        <option value="yes">Return: YES</option>
+                        <option value="no">Return: NO</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterClaim" class="sr-only">Filter Claim</label>
+                    <select id="filterClaim" style="margin-bottom:0; width:100%;">
+                        <option value="">Semua Status Claim</option>
+                        <option value="yes">Claim: YES</option>
+                        <option value="no">Claim: NO</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="card-panel" style="background:#fefaf5;">
-            <div style="font-weight: 600; margin-bottom: 8px;"><i class="fas fa-download"></i> Ekspor Data ke Excel</div>
-            <div class="flex-row">
-                <button id="downloadExcelBtn" class="btn btn-success"><i class="fas fa-file-excel"></i> Download Excel (.xlsx)</button>
-                <span style="font-size:0.75rem; color:#5a6e7c; margin-left: 8px;"><i class="fas fa-info-circle"></i> Header: Part Demand, Lot, Attribute, QTY, QTY Konversi, UM Konversi, Remarks 1, Remarks 2, Nomor Service Job</span>
+            <div class="table-container">
+                <table id="table1"><thead><tr>
+                    <th class="col-check"><label for="checkAll" class="sr-only">Pilih semua baris</label><input type="checkbox" id="checkAll" class="cb-cell" aria-label="Pilih semua baris"></th>
+                    <th>Nomor</th><th>Catatan</th><th>Part</th><th>Qty Reservasi</th><th>Qty Transaksi</th><th>Part Demand</th><th>Serial Number</th><th>Status Pengiriman</th><th>Return To Factory</th><th>Claim To Factory</th><th>Teknisi Perbaikan</th>
+                </tr></thead><tbody id="tbody1"></tbody><tfoot><tr><td></td><td colspan="4" class="total-label">Total Qty</td><td id="totalQty1" class="total-value">0</td><td colspan="7"></td></tr></tfoot></table>
             </div>
-        </div>
+        </section>
 
-        <div class="summary-bar">
-            <h3><i class="fas fa-table-list"></i> Data Part & Service Job</h3>
-            <span class="badge-count" id="rowCounter">Total: 0 baris</span>
-        </div>
-        <div class="table-wrapper">
-            <table class="data-table" id="dataTable">
-                <thead>
-                    <tr>
-                        <th>Part Demand / Part</th>
-                        <th>Lot</th>
-                        <th>Attribute</th>
-                        <th>QTY / Qty Transaksi</th>
-                        <th>QTY Konversi</th>
-                        <th>UM Konversi</th>
-                        <th>Remarks 1</th>
-                        <th>Remarks 2</th>
-                        <th>Nomor Service Job / Catatan</th>
-                        <th style="width:70px">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr class="empty-row"><td colspan="10">Belum ada data. Upload file Excel/CSV untuk memulai.佛罗
-                </tbody>
-            </table>
-        </div>
-        <div style="margin-top: 12px; font-size:0.7rem; text-align:right; color:#6c8fae;">
-            <i class="fas fa-ban" style="color:#dc2626;"></i> Dilarang keras copy Webside ini !
-        </div>
+        <!-- TAB 2 -->
+        <section id="tab2" class="tab-content" role="tabpanel">
+            <div class="btn-group">
+                <button class="btn-success" id="addRowBtn" aria-label="Tambah baris baru"><i class="fas fa-plus-circle"></i> Tambah Baris</button>
+                <button class="btn-primary" id="excelBtn" aria-label="Unduh sebagai Excel"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button class="btn-secondary" id="pdfBtn" aria-label="Unduh sebagai PDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <span class="btn-group-info"><span class="badge" id="selectedCountBadge">0</span> baris diproses</span>
+            </div>
+            <label for="search2" class="sr-only">Cari data di tabel proses</label>
+            <input type="text" id="search2" placeholder="Cari data yang diproses...">
+            <div class="table-container">
+                <table id="table2"><thead><tr>
+                    <th class="col-no">No. Urut</th><th>Catatan</th><th>Part</th><th>Qty Transaksi</th><th>Part Demand</th><th>Serial Number</th><th>Teknisi Perbaikan</th><th class="col-action">Aksi</th>
+                </tr></thead><tbody id="tbody2"></tbody><tfoot><tr><td colspan="3" class="total-label">Total Qty</td><td id="totalQty2" class="total-value">0</td><td colspan="4"></td></tr></tfoot></table>
+            </div>
+            <div class="manual-notes-section">
+                <div class="notes-header"><i class="fas fa-pen-nib"></i> Keterangan Tambahan (Manual)</div>
+                <div id="manualNotesContainer">
+                    <div class="note-row"><div class="note-num">1.</div><div class="note-input" contenteditable="true" data-placeholder="Tulis keterangan di sini..." role="textbox"></div></div>
+                    <div class="note-row"><div class="note-num">2.</div><div class="note-input" contenteditable="true" data-placeholder="Tulis keterangan di sini..." role="textbox"></div></div>
+                    <div class="note-row"><div class="note-num">3.</div><div class="note-input" contenteditable="true" data-placeholder="Tulis keterangan di sini..." role="textbox"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3 -->
+        <section id="tab3" class="tab-content" role="tabpanel">
+            <div class="btn-group">
+                <button class="btn-success" id="addRowBtn3" aria-label="Tambah baris demand baru"><i class="fas fa-plus-circle"></i> Tambah Baris</button>
+                <button class="btn-primary" id="excelBtn3" aria-label="Unduh Part Demand sebagai Excel"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button class="btn-secondary" id="pdfBtn3" aria-label="Unduh Part Demand sebagai PDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <span class="btn-group-info"><span class="badge" id="demandCountBadge">0</span> baris demand</span>
+            </div>
+            <label for="search3" class="sr-only">Cari data di tabel part demand</label>
+            <input type="text" id="search3" placeholder="Cari part demand, lot, atribut...">
+            <div class="table-container">
+                <table id="table3"><thead><tr>
+                    <th class="col-no">No. Urut</th><th>Part Demand / Part</th><th>Lot</th><th>Attribute</th><th>QTY / Qty Transaksi</th><th>QTY Konversi</th><th>UM Konversi</th><th>Remarks 1</th><th>Remarks 2</th><th>Nomor Service Job / Catatan</th><th class="col-action">Aksi</th>
+                </tr></thead><tbody id="tbody3"></tbody><tfoot><tr><td colspan="4" class="total-label">Total QTY</td><td id="totalQty3a" class="total-value">0</td><td colspan="6"></td></tr></tfoot></table>
+            </div>
+        </section>
+
+        <!-- TAB 4 -->
+        <section id="tab4" class="tab-content" role="tabpanel">
+            <div class="btn-group">
+                <button class="btn-success" id="addRowBtn4" aria-label="Tambah baris baru"><i class="fas fa-plus-circle"></i> Tambah Baris</button>
+                <button class="btn-primary" id="excelBtn4" aria-label="Unduh sebagai Excel"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button class="btn-secondary" id="pdfBtn4" aria-label="Unduh sebagai PDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <span class="btn-group-info"><span class="badge" id="stockCountBadge">0</span> baris surat jalan</span>
+            </div>
+            <label for="search4" class="sr-only">Cari data di tabel stock opname</label>
+            <input type="text" id="search4" placeholder="Cari data surat jalan...">
+            <div class="table-container">
+                <table id="table4"><thead><tr>
+                    <th class="col-no">No. Urut</th><th>Catatan</th><th>Part</th><th>Qty Reservasi</th><th>Part Demand</th><th>Serial Number</th><th>Teknisi Perbaikan</th><th class="col-action">Aksi</th>
+                </tr></thead><tbody id="tbody4"></tbody>
+                <tfoot><tr><td colspan="3" class="total-label">Total Qty</td><td id="totalQty4" class="total-value">0</td><td colspan="4"></td></tr></tfoot></table>
+            </div>
+        </section>
+
+        <!-- TAB 5 -->
+        <section id="tab5" class="tab-content" role="tabpanel">
+            <div class="btn-group">
+                <button class="btn-success" id="addRowBtn5" aria-label="Tambah baris baru"><i class="fas fa-plus-circle"></i> Tambah Baris</button>
+                <button class="btn-primary" id="excelBtn5" aria-label="Unduh sebagai Excel"><i class="fas fa-file-excel"></i> Download Excel</button>
+                <button class="btn-secondary" id="pdfBtn5" aria-label="Unduh sebagai PDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <span class="btn-group-info"><span class="badge" id="stockCountBadge5">0</span> baris surat jalan</span>
+            </div>
+            <label for="search5" class="sr-only">Cari data di tabel surat jalan 2</label>
+            <input type="text" id="search5" placeholder="Cari data surat jalan 2...">
+            <div class="table-container">
+                <table id="table5"><thead><tr>
+                    <th class="col-no">No. Urut</th><th>Catatan</th><th>Part</th><th>Qty Reservasi</th><th>Part Demand</th><th>Serial Number</th><th>Teknisi Perbaikan</th><th>Disetujui Pada</th><th>Lamanya Hari</th><th class="col-action">Aksi</th>
+                </tr></thead><tbody id="tbody5"></tbody>
+                <tfoot><tr><td colspan="3" class="total-label">Total Qty</td><td id="totalQty5" class="total-value">0</td><td colspan="6"></td></tr></tfoot></table>
+            </div>
+        </section>
     </div>
-    <footer>
-        <i class="fas fa-robot"></i>  Auto-extract SJOB @ April 2026 Oleh Gregorius Berlin Sale.
-    </footer>
 </div>
 
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 <script>
-    // ------------- DATA STORAGE -------------
-    const INTERNAL_PART_COLUMN = "Part";
-    const INTERNAL_SERVICE_COLUMN = "Nomor Service Job / Catatan";
-    
-    const requiredColumns = [
-        INTERNAL_PART_COLUMN, "Lot", "Attribute", "QTY", 
-        "QTY Konversi", "UM Konversi", "Remarks 1", "Remarks 2", 
-        INTERNAL_SERVICE_COLUMN
-    ];
-    
-    const exportHeaders = [
-        "Part Demand", "Lot", "Attribute", "QTY", 
-        "QTY Konversi", "UM Konversi", "Remarks 1", "Remarks 2", 
-        "Nomor Service Job"
-    ];
-    
-    const exportDataMapping = {
-        "Part Demand": INTERNAL_PART_COLUMN,
-        "Lot": "Lot",
-        "Attribute": "Attribute",
-        "QTY": "QTY",
-        "QTY Konversi": "QTY Konversi",
-        "UM Konversi": "UM Konversi",
-        "Remarks 1": "Remarks 1",
-        "Remarks 2": "Remarks 2",
-        "Nomor Service Job": INTERNAL_SERVICE_COLUMN
-    };
-    
-    const alternativeColumnNames = {
-        "Part": INTERNAL_PART_COLUMN,
-        "Part Demand": INTERNAL_PART_COLUMN,
-        "Part Demand / Part": INTERNAL_PART_COLUMN,
-        "Part / Part Demand": INTERNAL_PART_COLUMN,
-        "Nomor Service Job": INTERNAL_SERVICE_COLUMN,
-        "Nomor Service Job / Catatan": INTERNAL_SERVICE_COLUMN,
-        "Service Job": INTERNAL_SERVICE_COLUMN,
-        "Catatan": INTERNAL_SERVICE_COLUMN,
-        "SJOB": INTERNAL_SERVICE_COLUMN,
-        "QTY / Qty Transaksi": "QTY",
-        "Qty Transaksi": "QTY"
-    };
-    
-    let dataset = [];
+(function() {
+    "use strict";
+    const { jsPDF } = window.jspdf;
 
-    function normalizeHeader(str) {
-        return str.trim();
-    }
+    // ========== STATE ==========
+    let data1 = [], selectedIndexes = new Set(), data2 = [], data3 = [], data4 = [], data5 = [];
+    let currentFilter1 = "", currentFilter2 = "", currentFilter3 = "", currentFilter4 = "", currentFilter5 = "";
+    let filterTeknisiVal = "", filterReturnVal = "", filterClaimVal = "", filterPengirimanVal = "";
     
-    function mapColumnName(originalHeader) {
-        const normalized = normalizeHeader(originalHeader);
-        for (let [alt, target] of Object.entries(alternativeColumnNames)) {
-            if (normalized.toLowerCase() === alt.toLowerCase()) {
-                return target;
-            }
-        }
-        for (let req of requiredColumns) {
-            if (normalized.toLowerCase() === req.toLowerCase()) {
-                return req;
-            }
-        }
-        return null;
+    // ========== DOM ==========
+    const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
+    const fileInput = $("#fileInput"), 
+          search1 = $("#search1"), search2 = $("#search2"), search3 = $("#search3"), search4 = $("#search4"), search5 = $("#search5");
+    const filterTeknisi = $("#filterTeknisi"), filterReturn = $("#filterReturn"), filterClaim = $("#filterClaim"), filterPengiriman = $("#filterPengiriman");
+    const addRowBtn = $("#addRowBtn"), addRowBtn3 = $("#addRowBtn3"), addRowBtn4 = $("#addRowBtn4"), addRowBtn5 = $("#addRowBtn5");
+    const resetBtn = $("#resetBtn"), checkAllCb = $("#checkAll"), deleteSelectedBtn = $("#deleteSelectedBtn");
+    const tbody1 = $("#tbody1"), tbody2 = $("#tbody2"), tbody3 = $("#tbody3"), tbody4 = $("#tbody4"), tbody5 = $("#tbody5");
+    const totalQty1El = $("#totalQty1"), totalQty2El = $("#totalQty2"), totalQty3aEl = $("#totalQty3a"), totalQty4El = $("#totalQty4"), totalQty5El = $("#totalQty5");
+    const countBadge = $("#dataCountBadge"), selectedBadge = $("#selectedCountBadge"), demandBadge = $("#demandCountBadge"), stockBadge = $("#stockCountBadge"), stockBadge5 = $("#stockCountBadge5");
+    const toastContainer = $("#toastContainer");
+    
+    const KEYS_TAB1 = ["Nomor","Catatan","Part","Qty Reservasi","Qty Transaksi","Part Demand","Serial Number","Status Pengiriman","Return To Factory","Claim To Factory","Teknisi Perbaikan"];
+    const KEYS_TAB2 = ["No_Urut","Catatan","Part","Qty Transaksi","Part Demand","Serial Number","Teknisi Perbaikan"];
+    const KEYS_TAB3 = ["No_Urut","Part Demand / Part","Lot","Attribute","QTY / Qty Transaksi","QTY Konversi","UM Konversi","Remarks 1","Remarks 2","Nomor Service Job / Catatan"];
+    const KEYS_TAB4 = ["No_Urut","Catatan","Part","Qty Reservasi","Part Demand","Serial Number","Teknisi Perbaikan"];
+    const KEYS_TAB5 = ["No_Urut","Catatan","Part","Qty Reservasi","Part Demand","Serial Number","Teknisi Perbaikan","Disetujui Pada","Lamanya Hari"];
+
+    // ========== UTILITAS ==========
+    function extractSjob(t) { if(!t||typeof t!=="string")return""; var i=t.toUpperCase().indexOf("SJOB"); if(i===-1)return""; var m=t.substring(i).match(/^(SJOB[A-Za-z0-9\/\-_.]+)/i); return m?m[0]:""; }
+    function calcTotal(a, k) { var s=0; for(var i=0;i<a.length;i++) s+=parseFloat(a[i][k])||0; return s; }
+    function debounce(fn, d) { var t; return function(){ clearTimeout(t); t=setTimeout(fn, d); }; }
+    function checkYesNo(val, target) {
+        if (!target) return true;
+        var v = String(val).toLowerCase().trim();
+        var isYes = (v === "yes" || v === "y" || v === "true" || v === "1");
+        return (target === "yes") ? isYes : !isYes;
+    }
+    function showToast(msg, type) {
+        const ic = { success:"fa-check-circle", danger:"fa-exclamation-circle", info:"fa-info-circle" };
+        const t = document.createElement("div"); t.className = "toast toast-"+type;
+        t.innerHTML = '<i class="fas '+(ic[type]||ic.info)+'"></i><span>'+msg+'</span>';
+        toastContainer.appendChild(t); setTimeout(()=>{ if(t.parentNode) t.remove(); }, 3200);
     }
 
-    function extractSjobToEnd(rawValue) {
-        if (!rawValue || typeof rawValue !== 'string') return "";
-        const trimmed = rawValue.trim();
-        const sjobIndex = trimmed.indexOf("SJOB");
-        if (sjobIndex === -1) return "";
-        return trimmed.substring(sjobIndex);
-    }
-    
-    function isValidPartValue(value) {
-        if (!value || typeof value !== 'string') return true;
-        const lowerValue = value.toLowerCase();
-        if (lowerValue.includes("part demand")) {
-            return false;
+    function calculateDays(dateStr) {
+        if (!dateStr) return "";
+        dateStr = String(dateStr).trim();
+        var parts, date;
+        if (dateStr.indexOf('/') !== -1) {
+            parts = dateStr.split('/');
+            if (parts.length === 3) date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        } else if (dateStr.indexOf('-') !== -1) {
+            parts = dateStr.split('-');
+             if (parts.length === 3) date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
         }
-        return true;
-    }
-    
-    function mapToInternal(row, rowIndex) {
-        let mapped = {};
-        requiredColumns.forEach(col => { mapped[col] = ""; });
-        let partValue = "";
-        
-        for (let [key, value] of Object.entries(row)) {
-            if (value === undefined || value === null) continue;
-            const targetCol = mapColumnName(key);
-            if (targetCol && requiredColumns.includes(targetCol)) {
-                let rawVal = (value !== undefined && value !== null) ? String(value).trim() : "";
-                if (targetCol === INTERNAL_SERVICE_COLUMN) {
-                    rawVal = extractSjobToEnd(rawVal);
-                }
-                if (targetCol === INTERNAL_PART_COLUMN) {
-                    partValue = rawVal;
-                }
-                mapped[targetCol] = rawVal;
-            }
-        }
-        
-        if (!isValidPartValue(partValue)) {
-            return null;
-        }
-        
-        return mapped;
-    }
-    
-    function hasSjobPrefix(value) {
-        if (!value || typeof value !== 'string') return false;
-        return value.trim().startsWith("SJOB");
+        if (!date || isNaN(date.getTime())) return ""; 
+        var today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        var diffTime = today - date;
+        var diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
+        return diffDays >= 0 ? diffDays : 0;
     }
 
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        if (!dataset.length) {
-            tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Belum ada data. Upload file Excel/CSV untuk memulai.佛罗';
-            document.getElementById('rowCounter').innerText = `Total: 0 baris`;
-            return;
-        }
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && e.target.hasAttribute("contenteditable")) { e.preventDefault(); e.target.blur(); }
+    });
 
-        let html = '';
-        dataset.forEach((item, idx) => {
-            const serviceJobRaw = item[INTERNAL_SERVICE_COLUMN] || "";
-            const hasSjob = hasSjobPrefix(serviceJobRaw);
-            const displayServiceJob = escapeHtml(serviceJobRaw);
-            const sjobCellContent = hasSjob 
-                ? `<span class="sjob-highlight"><i class="fas fa-bolt" style="font-size:9px; margin-right:4px;"></i> ${displayServiceJob}</span>`
-                : (displayServiceJob === "" ? "<span style='color:#aaa; font-style:italic;'>(kosong)</span>" : displayServiceJob);
-            
-            html += `<tr>
-                        <td>${escapeHtml(item[INTERNAL_PART_COLUMN] || '')}</td>
-                        <td>${escapeHtml(item["Lot"] || '')}</td>
-                        <td>${escapeHtml(item["Attribute"] || '')}</td>
-                        <td>${escapeHtml(item["QTY"] || '')}</td>
-                        <td>${escapeHtml(item["QTY Konversi"] || '')}</td>
-                        <td>${escapeHtml(item["UM Konversi"] || '')}</td>
-                        <td>${escapeHtml(item["Remarks 1"] || '')}</td>
-                        <td>${escapeHtml(item["Remarks 2"] || '')}</td>
-                        <td style="${hasSjob ? 'background:#fff0e0; border-radius:12px; text-align:center;' : 'text-align:center;'}">${sjobCellContent}</td>
-                        <td class="action-icons" style="text-align:center;"><i class="fas fa-trash-alt" data-index="${idx}" title="Hapus baris"></i></td>
-                      </tr>`;
+    // ========== NAVIGASI TAB ==========
+    $$(".tab-button").forEach(btn => {
+        btn.addEventListener("click", function() {
+            $$(".tab-button").forEach(b => { b.classList.remove("active"); b.setAttribute("aria-selected","false"); });
+            $$(".tab-content").forEach(c => c.classList.remove("active"));
+            btn.classList.add("active"); btn.setAttribute("aria-selected","true");
+            $("#" + btn.dataset.tab).classList.add("active");
         });
-        tbody.innerHTML = html;
-        document.getElementById('rowCounter').innerText = `Total: ${dataset.length} baris`;
+    });
 
-        document.querySelectorAll('.fa-trash-alt').forEach(icon => {
-            icon.addEventListener('click', (e) => {
-                const index = parseInt(icon.getAttribute('data-index'));
-                if (!isNaN(index)) {
-                    dataset.splice(index, 1);
-                    renderTable();
-                }
-            });
-        });
+    // ========== RESET ==========
+    resetBtn.addEventListener("click", function() {
+        if (!confirm("Apakah Anda yakin ingin mereset semua data?")) return;
+        data1=[]; data2=[]; data3=[]; data4=[]; data5=[]; selectedIndexes.clear();
+        currentFilter1=""; currentFilter2=""; currentFilter3=""; currentFilter4=""; currentFilter5="";
+        filterTeknisiVal=""; filterReturnVal=""; filterClaimVal=""; filterPengirimanVal="";
+        tbody1.innerHTML=""; tbody2.innerHTML=""; tbody3.innerHTML=""; tbody4.innerHTML=""; tbody5.innerHTML="";
+        totalQty1El.textContent="0"; totalQty2El.textContent="0"; totalQty3aEl.textContent="0"; totalQty4El.textContent="0"; totalQty5El.textContent="0";
+        fileInput.value=""; search1.value=""; search2.value=""; search3.value=""; search4.value=""; search5.value="";
+        filterTeknisi.innerHTML = '<option value="">Semua Teknisi</option>'; filterReturn.value=""; filterClaim.value=""; filterPengiriman.innerHTML = '<option value="">Semua Status Pengiriman</option>';
+        checkAllCb.checked=false; checkAllCb.indeterminate=false;
+        countBadge.textContent="0"; selectedBadge.textContent="0"; demandBadge.textContent="0"; stockBadge.textContent="0"; stockBadge5.textContent="0";
+        $$(".note-input").forEach(el => el.innerText="");
+        showToast("Semua data berhasil direset.", "info");
+    });
+
+    // ========== UPLOAD FILE ==========
+    fileInput.addEventListener("change", function(e) {
+        var file = e.target.files[0]; if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                var wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
+                var parsed = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+                if (!parsed.length) { showToast("File kosong atau format tidak dikenali.", "danger"); return; }
+                data1 = parsed; selectedIndexes.clear();
+                checkAllCb.checked=false; checkAllCb.indeterminate=false; currentFilter1=""; search1.value=""; 
+                filterTeknisiVal=""; filterReturnVal=""; filterClaimVal=""; filterPengirimanVal="";
+                filterTeknisi.value=""; filterReturn.value=""; filterClaim.value=""; filterPengiriman.value="";
+                populateTeknisiDropdown(data1);
+                populatePengirimanDropdown(data1);
+                renderTable1(); syncToTab2(); syncToTab3(); syncToTab4(); syncToTab5();
+                showToast(parsed.length + " baris data berhasil diimpor.", "success");
+            } catch (err) { showToast("Gagal membaca file: " + err.message, "danger"); }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // ========== FUNGSI ISI DROPDOWN ==========
+    function populateTeknisiDropdown(arr) {
+        var teknisiSet = new Set();
+        for (var i = 0; i < arr.length; i++) {
+            var t = arr[i]["Teknisi Perbaikan"];
+            if (t && String(t).trim() !== "") teknisiSet.add(String(t).trim());
+        }
+        var sortedArr = Array.from(teknisiSet).sort();
+        filterTeknisi.innerHTML = '<option value="">Semua Teknisi</option>';
+        for (var j = 0; j < sortedArr.length; j++) {
+            var opt = document.createElement("option");
+            opt.value = sortedArr[j]; opt.textContent = sortedArr[j];
+            filterTeknisi.appendChild(opt);
+        }
+    }
+    function populatePengirimanDropdown(arr) {
+        var pengirimanSet = new Set();
+        for (var i = 0; i < arr.length; i++) {
+            var t = arr[i]["Status Pengiriman"];
+            if (t && String(t).trim() !== "") pengirimanSet.add(String(t).trim());
+        }
+        var sortedArr = Array.from(pengirimanSet).sort();
+        filterPengiriman.innerHTML = '<option value="">Semua Status Pengiriman</option>';
+        for (var j = 0; j < sortedArr.length; j++) {
+            var opt = document.createElement("option");
+            opt.value = sortedArr[j]; opt.textContent = sortedArr[j];
+            filterPengiriman.appendChild(opt);
+        }
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+    // ========== CHECKALL ==========
+    checkAllCb.addEventListener("change", function() {
+        var isC = checkAllCb.checked;
+        getFilteredData1().forEach(item => { if(isC) selectedIndexes.add(item._origIdx); else selectedIndexes.delete(item._origIdx); });
+        tbody1.querySelectorAll("input[type='checkbox']").forEach(cb => {
+            var idx = parseInt(cb.dataset.idx); cb.checked = selectedIndexes.has(idx);
+            var row = cb.closest("tr"); if(cb.checked) row.classList.add("selected-row"); else row.classList.remove("selected-row");
         });
+        syncToTab2(); syncToTab3(); syncToTab4(); syncToTab5();
+    });
+
+    // ========== PENCARIAN & FILTER ==========
+    search1.addEventListener("input", debounce(function() { currentFilter1 = search1.value.toLowerCase(); renderTable1(); }, 300));
+    filterTeknisi.addEventListener("change", function() { filterTeknisiVal = filterTeknisi.value; renderTable1(); });
+    filterPengiriman.addEventListener("change", function() { filterPengirimanVal = filterPengiriman.value; renderTable1(); });
+    filterReturn.addEventListener("change", function() { filterReturnVal = filterReturn.value; renderTable1(); });
+    filterClaim.addEventListener("change", function() { filterClaimVal = filterClaim.value; renderTable1(); });
+    
+    search2.addEventListener("input", debounce(function() { currentFilter2 = search2.value.toLowerCase(); renderTable2(); }, 300));
+    search3.addEventListener("input", debounce(function() { currentFilter3 = search3.value.toLowerCase(); renderTable3(); }, 300));
+    search4.addEventListener("input", debounce(function() { currentFilter4 = search4.value.toLowerCase(); renderTable4(); }, 300));
+    search5.addEventListener("input", debounce(function() { currentFilter5 = search5.value.toLowerCase(); renderTable5(); }, 300));
+
+    // ========== TAMBAH BARIS ==========
+    addRowBtn.addEventListener("click", function() { 
+        data2.push({ "No_Urut":"", "Catatan":"", "Part":"", "Qty Transaksi":"", "Part Demand":"", "Serial Number":"", "Teknisi Perbaikan":"", _isNew:true }); 
+        renderTable2(); showToast("Baris baru ditambahkan.", "success"); 
+    });
+    addRowBtn3.addEventListener("click", function() { 
+        data3.push({ "No_Urut":"", "Part Demand / Part":"", "Lot":"", "Attribute":"", "QTY / Qty Transaksi":"", "QTY Konversi":"", "UM Konversi":"", "Remarks 1":"", "Remarks 2":"", "Nomor Service Job / Catatan":"", _isNew:true }); 
+        renderTable3(); showToast("Baris demand baru ditambahkan.", "success"); 
+    });
+    addRowBtn4.addEventListener("click", function() { 
+        data4.push({ "No_Urut":"", "Catatan":"", "Part":"", "Qty Reservasi":"", "Part Demand":"", "Serial Number":"", "Teknisi Perbaikan":"", _isNew:true }); 
+        renderTable4(); showToast("Baris baru ditambahkan.", "success"); 
+    });
+    addRowBtn5.addEventListener("click", function() { 
+        data5.push({ "No_Urut":"", "Catatan":"", "Part":"", "Qty Reservasi":"", "Part Demand":"", "Serial Number":"", "Teknisi Perbaikan":"", "Disetujui Pada":"", "Lamanya Hari":"", _isNew:true }); 
+        renderTable5(); showToast("Baris baru ditambahkan.", "success"); 
+    });
+    
+    // ========== DELETE SELECTED ==========
+    deleteSelectedBtn.addEventListener("click", function() {
+        if (selectedIndexes.size === 0) { showToast("Tidak ada baris yang dipilih untuk dihapus.", "danger"); return; }
+        if (!confirm("Anda yakin ingin menghapus " + selectedIndexes.size + " baris terpilih secara permanen?")) return;
+        var toDelete = Array.from(selectedIndexes).sort((a, b) => b - a);
+        toDelete.forEach(function(idx) { data1.splice(idx, 1); });
+        selectedIndexes.clear();
+        populateTeknisiDropdown(data1);
+        populatePengirimanDropdown(data1);
+        renderTable1();
+        syncToTab2(); syncToTab3(); syncToTab4(); syncToTab5();
+        showToast(toDelete.length + " baris berhasil dihapus.", "success");
+    });
+
+    // ========== FILTER LOGIKA ==========
+    function getFilteredData1() {
+        var fText = currentFilter1, fTek = filterTeknisiVal, fRet = filterReturnVal, fClm = filterClaimVal, fKirim = filterPengirimanVal;
+        var res = [];
+        for(var i=0; i<data1.length; i++) {
+            var row = data1[i];
+            var matchText = true;
+            if (fText) { matchText = false; for(var k in row) { if(k.charAt(0)==="_") continue; if(String(row[k]).toLowerCase().indexOf(fText)!==-1) { matchText=true; break; } } }
+            if(!matchText) continue;
+            var matchTek = true; if (fTek) matchTek = (String(row["Teknisi Perbaikan"]).trim() === fTek); if(!matchTek) continue;
+            var matchKirim = true; if (fKirim) matchKirim = (String(row["Status Pengiriman"]).trim() === fKirim); if(!matchKirim) continue;
+            var matchRet = true; if (fRet) matchRet = checkYesNo(row["Return To Factory"], fRet); if(!matchRet) continue;
+            var matchClm = true; if (fClm) matchClm = checkYesNo(row["Claim To Factory"], fClm); if(!matchClm) continue;
+            res.push(Object.assign({}, row, {_origIdx:i}));
+        }
+        return res;
+    }
+    
+    function getFiltered(arr, f) { if(!f) return arr; return arr.filter(row => { for(var k in row) { if(k.charAt(0)==="_") continue; if(String(row[k]).toLowerCase().indexOf(f)!==-1) return true; } return false; }); }
+    function updateCheckAllState() { var fil=getFilteredData1(), t=fil.length, c=0; fil.forEach(i => { if(selectedIndexes.has(i._origIdx)) c++; }); checkAllCb.checked = (t>0 && c===t); checkAllCb.indeterminate = (c>0 && c<t); }
+
+    // ========== RENDER TABEL 1 ==========
+    function renderTable1() {
+        var frag = document.createDocumentFragment(), filtered = getFilteredData1(), total = 0;
+        if (!filtered.length && !data1.length) { var tr=document.createElement("tr"); tr.innerHTML = '<td colspan="12"><div class="empty-state"><i class="fas fa-file-upload"></i><p>Belum ada data.  ( By : Gregorius Berlin )</p></div></td>'; frag.appendChild(tr); }
+        else if (!filtered.length) { var tr=document.createElement("tr"); tr.innerHTML = '<td colspan="12"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); }
+        else { for (var fi=0; fi<filtered.length; fi++) { var row=filtered[fi], origIdx=row._origIdx; total += parseFloat(row["Qty Transaksi"]) || 0; var isC = selectedIndexes.has(origIdx); var tr=document.createElement("tr"); if(isC) tr.className = "selected-row"; var tdCb=document.createElement("td"); tdCb.className="col-check"; var cb=document.createElement("input"); cb.type="checkbox"; cb.className="cb-cell"; cb.dataset.idx=origIdx; if(isC) cb.checked=true; tdCb.appendChild(cb); tr.appendChild(tdCb); for (var ki=0; ki<KEYS_TAB1.length; ki++) { var td=document.createElement("td"); td.contentEditable="true"; td.dataset.key=KEYS_TAB1[ki]; td.dataset.idx=origIdx; td.textContent=row[KEYS_TAB1[ki]]||""; tr.appendChild(td); } frag.appendChild(tr); } }
+        tbody1.innerHTML=""; tbody1.appendChild(frag); totalQty1El.textContent=total.toLocaleString("id-ID"); countBadge.textContent=data1.length; updateCheckAllState();
     }
 
-    function addDataRows(rowsArray) {
-        let added = 0;
-        let rejected = 0;
-        let rejectedSample = [];
-        
-        for (let i = 0; i < rowsArray.length; i++) {
-            let internal = mapToInternal(rowsArray[i], i);
-            if (internal === null) {
-                rejected++;
-                let partVal = "";
-                for (let [key, value] of Object.entries(rowsArray[i])) {
-                    const mappedCol = mapColumnName(key);
-                    if (mappedCol === INTERNAL_PART_COLUMN) {
-                        partVal = value;
-                        break;
+    // Event Delegasi Tab 1
+    tbody1.addEventListener("change", function(e) { if(e.target.type==="checkbox"){ var idx=parseInt(e.target.dataset.idx),tr=e.target.closest("tr"); if(e.target.checked){selectedIndexes.add(idx);tr.classList.add("selected-row");}else{selectedIndexes.delete(idx);tr.classList.remove("selected-row");} updateCheckAllState();syncToTab2();syncToTab3();syncToTab4();syncToTab5(); } });
+    tbody1.addEventListener("focusout", function(e) { if(e.target.hasAttribute("contenteditable")){ var idx=parseInt(e.target.dataset.idx),key=e.target.dataset.key; if(data1[idx]!==undefined){ data1[idx][key]=e.target.textContent; if(key==="Qty Transaksi"){totalQty1El.textContent=calcTotal(data1,"Qty Transaksi").toLocaleString("id-ID");if(selectedIndexes.has(idx)){syncToTab2();syncToTab3();syncToTab4();syncToTab5();}} if(key==="Catatan"&&selectedIndexes.has(idx)){syncToTab2();syncToTab4();syncToTab5();} if(key==="Status Pengiriman"){ populatePengirimanDropdown(data1); } if(key==="Teknisi Perbaikan"){populateTeknisiDropdown(data1); if(selectedIndexes.has(idx)){syncToTab2();syncToTab4();syncToTab5();}} if(key==="Return To Factory"||key==="Claim To Factory"){ renderTable1(); } } } });
+
+    // ========== SINKRONISASI ==========
+    function syncToTab2() { var fromTab1=[]; selectedIndexes.forEach(idx => { if(data1[idx]){ var r=Object.assign({},data1[idx],{_sourceIdx:idx,_isNew:false}); fromTab1.push(r); } }); var manual=data2.filter(r=>r._isNew); data2=fromTab1.concat(manual); selectedBadge.textContent=data2.length; renderTable2(); }
+    function syncToTab3() { var fromTab1=[]; selectedIndexes.forEach(idx => { if(data1[idx]){ var src=data1[idx]; var t2r=null; for(var i=0; i<data2.length; i++){ if(data2[i]._sourceIdx === idx) { t2r = data2[i]; break; } } var cs=(t2r&&t2r["Catatan"])?t2r["Catatan"]:(src["Catatan"]||""); var r={_sourceIdx:idx,_isNew:false,"Part Demand / Part":(t2r&&t2r["Part"])?t2r["Part"]:(src["Part"]||""),"Lot":"","Attribute":"","QTY / Qty Transaksi":(t2r&&t2r["Qty Transaksi"])?t2r["Qty Transaksi"]:(src["Qty Transaksi"]||""),"QTY Konversi":"","UM Konversi":"","Remarks 1":"","Remarks 2":"","Nomor Service Job / Catatan":extractSjob(cs)}; fromTab1.push(r); } }); var manual=data3.filter(r=>r._isNew); data3=fromTab1.concat(manual); demandBadge.textContent=data3.length; renderTable3(); }
+    function syncToTab4() { var fromTab1=[]; selectedIndexes.forEach(idx => { if(data1[idx]){ var r=Object.assign({},data1[idx],{_sourceIdx:idx,_isNew:false}); fromTab1.push(r); } }); var manual=data4.filter(r=>r._isNew); data4=fromTab1.concat(manual); stockBadge.textContent=data4.length; renderTable4(); }
+    function syncToTab5() { var fromTab1=[]; selectedIndexes.forEach(idx => { if(data1[idx]){ var r=Object.assign({},data1[idx],{_sourceIdx:idx,_isNew:false}); fromTab1.push(r); } }); var manual=data5.filter(r=>r._isNew); data5=fromTab1.concat(manual); stockBadge5.textContent=data5.length; renderTable5(); }
+
+    // ========== RENDER TABEL 2, 3, 4 & 5 ==========
+    function renderTable2() { var frag=document.createDocumentFragment(), filtered=getFiltered(data2,currentFilter2), total=0; if(!filtered.length && !data2.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="8"><div class="empty-state"><i class="fas fa-clipboard-list"></i><p>Belum ada data diproses.</p></div></td>'; frag.appendChild(tr); } else if(!filtered.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="8"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); } else { for(var fi=0; fi<filtered.length; fi++){ var row=filtered[fi]; var ri = data2.indexOf(row); total+=parseFloat(row["Qty Transaksi"])||0; var tr=document.createElement("tr"); if(row._isNew) tr.className="new-row"; var tdN=document.createElement("td"); tdN.className="no-urut"; tdN.textContent=fi+1; tr.appendChild(tdN); for(var ki=1; ki<KEYS_TAB2.length; ki++){ var td=document.createElement("td"); td.contentEditable="true"; td.dataset.key=KEYS_TAB2[ki]; td.dataset.ridx=ri; td.textContent=row[KEYS_TAB2[ki]]||""; tr.appendChild(td); } var tdA=document.createElement("td"); tdA.className="col-action"; var btn=document.createElement("button"); btn.className="btn-danger"; btn.dataset.ridx=ri; btn.innerHTML='<i class="fas fa-trash-alt"></i>'; tdA.appendChild(btn); tr.appendChild(tdA); frag.appendChild(tr); } } tbody2.innerHTML=""; tbody2.appendChild(frag); totalQty2El.textContent=total.toLocaleString("id-ID"); }
+    function renderTable3() { var frag=document.createDocumentFragment(), filtered=getFiltered(data3,currentFilter3), totalA=0; if(!filtered.length && !data3.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="11"><div class="empty-state"><i class="fas fa-exchange-alt"></i><p>Belum ada data SJOB.</p></div></td>'; frag.appendChild(tr); } else if(!filtered.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="11"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); } else { for(var fi=0; fi<filtered.length; fi++){ var row=filtered[fi]; var ri = data3.indexOf(row); totalA+=parseFloat(row["QTY / Qty Transaksi"])||0; var tr=document.createElement("tr"); if(row._isNew) tr.className="new-row"; var tdN=document.createElement("td"); tdN.className="no-urut"; tdN.textContent=fi+1; tr.appendChild(tdN); for(var ki=1; ki<KEYS_TAB3.length; ki++){ var td=document.createElement("td"); td.contentEditable="true"; td.dataset.key=KEYS_TAB3[ki]; td.dataset.ridx3=ri; td.textContent=row[KEYS_TAB3[ki]]||""; tr.appendChild(td); } var tdA=document.createElement("td"); tdA.className="col-action"; var btn=document.createElement("button"); btn.className="btn-danger"; btn.dataset.ridx3=ri; btn.innerHTML='<i class="fas fa-trash-alt"></i>'; tdA.appendChild(btn); tr.appendChild(tdA); frag.appendChild(tr); } } tbody3.innerHTML=""; tbody3.appendChild(frag); totalQty3aEl.textContent=totalA.toLocaleString("id-ID"); demandBadge.textContent=data3.length; }
+    function renderTable4() { var frag=document.createDocumentFragment(), filtered=getFiltered(data4,currentFilter4), total=0; if(!filtered.length && !data4.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="8"><div class="empty-state"><i class="fas fa-boxes"></i><p>Belum ada data surat jalan.</p></div></td>'; frag.appendChild(tr); } else if(!filtered.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="8"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); } else { for(var fi=0; fi<filtered.length; fi++){ var row=filtered[fi]; var ri = data4.indexOf(row); total+=parseFloat(row["Qty Reservasi"])||0; var tr=document.createElement("tr"); if(row._isNew) tr.className="new-row"; var tdN=document.createElement("td"); tdN.className="no-urut"; tdN.textContent=fi+1; tr.appendChild(tdN); for(var ki=1; ki<KEYS_TAB4.length; ki++){ var td=document.createElement("td"); td.contentEditable="true"; td.dataset.key=KEYS_TAB4[ki]; td.dataset.ridx4=ri; td.textContent=row[KEYS_TAB4[ki]]||""; tr.appendChild(td); } var tdA=document.createElement("td"); tdA.className="col-action"; var btn=document.createElement("button"); btn.className="btn-danger"; btn.dataset.ridx4=ri; btn.innerHTML='<i class="fas fa-trash-alt"></i>'; tdA.appendChild(btn); tr.appendChild(tdA); frag.appendChild(tr); } } tbody4.innerHTML=""; tbody4.appendChild(frag); totalQty4El.textContent=total.toLocaleString("id-ID"); }
+    
+    function renderTable5() { 
+        var frag=document.createDocumentFragment(), filtered=getFiltered(data5,currentFilter5), total=0; 
+        if(!filtered.length && !data5.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="10"><div class="empty-state"><i class="fas fa-truck-loading"></i><p>Belum ada data surat jalan 2.</p></div></td>'; frag.appendChild(tr); } 
+        else if(!filtered.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="10"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); } 
+        else { 
+            for(var fi=0; fi<filtered.length; fi++){ 
+                var row=filtered[fi]; 
+                var ri = data5.indexOf(row); 
+                total+=parseFloat(row["Qty Reservasi"])||0; 
+                var tr=document.createElement("tr"); 
+                if(row._isNew) tr.className="new-row"; 
+                var tdN=document.createElement("td"); tdN.className="no-urut"; tdN.textContent=fi+1; tr.appendChild(tdN); 
+                
+                for(var ki=1; ki<KEYS_TAB5.length; ki++){ 
+                    var key=KEYS_TAB5[ki];
+                    var td=document.createElement("td"); 
+                    
+                    if(key === "Lamanya Hari") {
+                        td.className = "days-count";
+                        var days = calculateDays(row["Disetujui Pada"]);
+                        td.textContent = days;
+                        row[key] = days; 
+                    } else {
+                        td.contentEditable = "true"; 
+                        td.dataset.key = key; 
+                        td.dataset.ridx5 = ri; 
+                        td.textContent = row[key]||""; 
                     }
-                }
-                if (rejectedSample.length < 5) {
-                    rejectedSample.push(partVal || "(unknown)");
-                }
-                continue;
-            }
-            const allEmpty = requiredColumns.every(col => internal[col] === "");
-            if (!allEmpty) {
-                dataset.push(internal);
-                added++;
-            }
-        }
-        
-        if (rejected > 0) {
-            let sampleMsg = rejectedSample.join(", ");
-            alert(`⚠️ PERINGATAN: ${rejected} baris DITOLAK karena kolom "Part Demand / Part" mengandung kata "Part Demand".\nContoh nilai yang ditolak: ${sampleMsg}${rejectedSample.length < rejected ? ` (+${rejected - rejectedSample.length} lainnya)` : ""}\n\nHanya ${added} baris valid (data PART murni) yang berhasil dimuat.`);
-        } else if (added > 0) {
-            alert(`✅ Berhasil memuat ${added} baris data PART murni.`);
-        } else if (added === 0 && rejected === 0) {
-            alert("Tidak ada data yang valid untuk dimuat.");
-        }
-        
-        renderTable();
-        return added;
-    }
-
-    function clearAllData() {
-        if (dataset.length && confirm("Hapus SEMUA data yang tersimpan?")) {
-            dataset = [];
-            renderTable();
-        } else if (dataset.length === 0) {
-            alert("Tidak ada data untuk dihapus.");
-        }
-    }
-
-    function downloadAsExcel() {
-        if (dataset.length === 0) {
-            alert("Tidak ada data untuk diekspor ke Excel.");
-            return;
-        }
-        
-        const exportData = dataset.map(row => {
-            let newRow = {};
-            for (let exportHeader of exportHeaders) {
-                const internalKey = exportDataMapping[exportHeader];
-                newRow[exportHeader] = row[internalKey] || "";
-            }
-            return newRow;
-        });
-        
-        const worksheet = XLSX.utils.json_to_sheet(exportData, { header: exportHeaders });
-        worksheet['!cols'] = [
-            { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 12 },
-            { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 35 }
-        ];
-        
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "PartDemand_ExtractedSJOB");
-        XLSX.writeFile(workbook, `Part_Data_SJOB_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
-    }
-
-    function handleFile(file) {
-        return new Promise((resolve, reject) => {
-            const ext = file.name.split('.').pop().toLowerCase();
-            if (ext === 'xlsx' || ext === 'xls') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-                    resolve(rows);
-                };
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
+                    tr.appendChild(td); 
+                } 
+                var tdA=document.createElement("td"); tdA.className="col-action"; 
+                var btn=document.createElement("button"); btn.className="btn-danger"; btn.dataset.ridx5=ri; btn.innerHTML='<i class="fas fa-trash-alt"></i>'; 
+                tdA.appendChild(btn); tr.appendChild(tdA); frag.appendChild(tr); 
             } 
-            else if (ext === 'csv') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const text = e.target.result;
-                    const lines = text.split(/\r?\n/);
-                    if (lines.length === 0) reject("File CSV kosong");
-                    let headersRaw = lines[0].split(/[;,]/).map(h => h.trim().replace(/['"]/g, ''));
-                    const dataRows = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        if (lines[i].trim() === "") continue;
-                        const values = lines[i].split(/[;,]/).map(v => v.trim().replace(/['"]/g, ''));
-                        let rowObj = {};
-                        headersRaw.forEach((h, idx) => {
-                            rowObj[h] = values[idx] !== undefined ? values[idx] : "";
-                        });
-                        dataRows.push(rowObj);
-                    }
-                    resolve(dataRows);
-                };
-                reader.onerror = reject;
-                reader.readAsText(file, "UTF-8");
-            }
-            else if (ext === 'json') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const jsonArray = JSON.parse(e.target.result);
-                        if (Array.isArray(jsonArray)) resolve(jsonArray);
-                        else reject("JSON harus berupa array objek");
-                    } catch(err) { reject("JSON tidak valid"); }
-                };
-                reader.onerror = reject;
-                reader.readAsText(file);
-            }
-            else {
-                reject("Format file tidak didukung. Gunakan .xlsx, .xls, .csv, .json");
-            }
-        });
+        } 
+        tbody5.innerHTML=""; tbody5.appendChild(frag); totalQty5El.textContent=total.toLocaleString("id-ID"); 
     }
 
-    document.getElementById('uploadBtn').addEventListener('click', () => {
-        const fileInput = document.getElementById('fileInput');
-        const file = fileInput.files[0];
-        if (!file) {
-            alert("Pilih file terlebih dahulu.");
-            return;
+    // Event Delegasi Tab 2, 3, 4
+    tbody2.addEventListener("focusout", function(e) { if(e.target.hasAttribute("contenteditable")){ var ri=parseInt(e.target.dataset.ridx), k=e.target.dataset.key; if(data2[ri]!==undefined){ data2[ri][k]=e.target.textContent; if(k==="Qty Transaksi") totalQty2El.textContent=calcTotal(data2,"Qty Transaksi").toLocaleString("id-ID"); if(k==="Catatan"||k==="Part") syncToTab3(); } } });
+    tbody2.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx); var row=data2[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab3(); syncToTab4(); syncToTab5(); } data2.splice(ri,1); selectedBadge.textContent=data2.length; renderTable2(); showToast("Baris berhasil dihapus.","danger"); } });
+    
+    tbody3.addEventListener("focusout", function(e) { if(e.target.hasAttribute("contenteditable")){ var ri=parseInt(e.target.dataset.ridx3), k=e.target.dataset.key; if(data3[ri]!==undefined){ data3[ri][k]=e.target.textContent; if(k==="QTY / Qty Transaksi") totalQty3aEl.textContent=calcTotal(data3,"QTY / Qty Transaksi").toLocaleString("id-ID"); } } });
+    tbody3.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx3); var row=data3[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab2(); syncToTab4(); syncToTab5(); } data3.splice(ri,1); demandBadge.textContent=data3.length; renderTable3(); showToast("Baris demand berhasil dihapus.","danger"); } });
+    
+    tbody4.addEventListener("focusout", function(e) { if(e.target.hasAttribute("contenteditable")){ var ri=parseInt(e.target.dataset.ridx4), k=e.target.dataset.key; if(data4[ri]!==undefined){ data4[ri][k]=e.target.textContent; if(k==="Qty Reservasi") totalQty4El.textContent=calcTotal(data4,"Qty Reservasi").toLocaleString("id-ID"); } } });
+    tbody4.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx4); var row=data4[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab2(); syncToTab3(); syncToTab5(); } data4.splice(ri,1); stockBadge.textContent=data4.length; renderTable4(); showToast("Baris surat jalan berhasil dihapus.","danger"); } });
+
+    // Event Delegasi Tab 5
+    tbody5.addEventListener("focusout", function(e) { 
+        if(e.target.hasAttribute("contenteditable")){ 
+            var ri=parseInt(e.target.dataset.ridx5), k=e.target.dataset.key; 
+            if(data5[ri]!==undefined){ 
+                data5[ri][k]=e.target.textContent; 
+                if(k==="Qty Reservasi") totalQty5El.textContent=calcTotal(data5,"Qty Reservasi").toLocaleString("id-ID");
+                if(k==="Disetujui Pada") {
+                    renderTable5(); 
+                }
+            } 
+        } 
+    });
+    tbody5.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx5); var row=data5[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab2(); syncToTab3(); syncToTab4(); } data5.splice(ri,1); stockBadge5.textContent=data5.length; renderTable5(); showToast("Baris surat jalan 2 berhasil dihapus.","danger"); } });
+
+    // ========== EXPORTS ==========
+    // Tab 2
+    $("#excelBtn").addEventListener("click", function() { if(!data2.length){showToast("Tidak ada data.","danger");return;} var exp=[],gt=calcTotal(data2,"Qty Transaksi"); for(var i=0;i<data2.length;i++){var r=data2[i]; exp.push({"No":i+1,"Catatan":r["Catatan"]||"","Part":r["Part"]||"","Qty Transaksi":r["Qty Transaksi"]||"","Part Demand":r["Part Demand"]||"","Serial Number":r["Serial Number"]||"","Teknisi Perbaikan":r["Teknisi Perbaikan"]||""});} exp.push({"No":"","Catatan":"","Part":"TOTAL QTY","Qty Transaksi":gt,"Part Demand":"","Serial Number":"","Teknisi Perbaikan":""}); appendNotes(exp); var ws=XLSX.utils.json_to_sheet(exp); ws["!cols"]=[{wch:6},{wch:30},{wch:35},{wch:14},{wch:14},{wch:25},{wch:25}]; var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Data Sparepart"); XLSX.writeFile(wb,"Laporan Data Sparepart Bekas.xlsx"); showToast("File Excel berhasil diunduh.","success"); });
+    $("#pdfBtn").addEventListener("click", function() { if(!data2.length){showToast("Tidak ada data.","danger");return;} var doc=new jsPDF({orientation:"p",unit:"mm",format:"a4"}),pw=doc.internal.pageSize.getWidth(),mg={left:8,right:8},uw=pw-mg.left-mg.right,col=["No","Catatan","Part","Qty","Demand","Serial","Teknisi"],rows=[]; for(var i=0;i<data2.length;i++){var r=data2[i]; rows.push([String(i+1),String(r["Catatan"]||""),String(r["Part"]||""),String(r["Qty Transaksi"]||""),String(r["Part Demand"]||""),String(r["Serial Number"]||""),String(r["Teknisi Perbaikan"]||"")]);} doc.setFontSize(16); doc.setTextColor(30,41,59); doc.text("Laporan Data Sparepart Bekas",mg.left,18); doc.setFontSize(8); doc.setTextColor(100,116,139); doc.text("Dicetak: "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}),mg.left,24); doc.autoTable({head:[col],body:rows,startY:28,margin:mg,styles:{font:"helvetica",fontStyle:"normal",fontSize:7,lineColor:[226,232,240],lineWidth:0.3,textColor:[51,65,85],cellPadding:2.5,overflow:"linebreak"},headStyles:{fillColor:[248,250,252],textColor:[30,41,59],fontStyle:"bold",fontSize:7.5,lineColor:[203,213,225],lineWidth:0.4,halign:"center",valign:"middle"},tableWidth:"auto",columnStyles:{0:{halign:"center",cellWidth:8},3:{halign:"center",cellWidth:10},4:{halign:"left",cellWidth:"auto"}},alternateRowStyles:{fillColor:[248,250,252]},theme:"grid"}); var fy=doc.lastAutoTable.finalY,gt=calcTotal(data2,"Qty Transaksi"); doc.setFontSize(9); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("TOTAL QTY:",uw-35,fy+7,{align:"right"}); doc.setTextColor(5,150,105); doc.text(String(gt),uw-8,fy+7,{align:"right"}); appendNotesPDF(doc,fy); doc.save("Laporan Data Sparepart Bekas.pdf"); showToast("File PDF berhasil diunduh.","success"); });
+    
+    // Tab 3
+    $("#excelBtn3").addEventListener("click", function() { if(!data3.length){showToast("Tidak ada data.","danger");return;} var exp=[]; for(var i=0;i<data3.length;i++){var r=data3[i]; exp.push({"Part Demand":r["Part Demand / Part"]||"","Lot":r["Lot"]||"","Attribute":r["Attribute"]||"","QTY":r["QTY / Qty Transaksi"]||"","QTY Konversi":r["QTY Konversi"]||"","UM Konversi":r["UM Konversi"]||"","Remarks 1":r["Remarks 1"]||"","Remarks 2":r["Remarks 2"]||"","Nomor Service Job":r["Nomor Service Job / Catatan"]||""});} var ws=XLSX.utils.json_to_sheet(exp); ws["!cols"]=[{wch:35},{wch:18},{wch:18},{wch:14},{wch:18},{wch:16},{wch:20},{wch:20},{wch:30}]; var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Part Demand"); XLSX.writeFile(wb,"Data SJOB Part Bekas.xlsx"); showToast("File Excel berhasil diunduh.","success"); });
+    $("#pdfBtn3").addEventListener("click", function() { if(!data3.length){showToast("Tidak ada data.","danger");return;} var doc=new jsPDF({orientation:"l",unit:"mm",format:"a4"}),pw=doc.internal.pageSize.getWidth(),mg={left:8,right:8},uw=pw-mg.left-mg.right,col=["No","Part Demand / Part","Lot","Attribute","QTY","QTY Konv.","UM Konv.","Remarks 1","Remarks 2","No. Svc Job"],rows=[]; for(var i=0;i<data3.length;i++){var r=data3[i]; rows.push([String(i+1),String(r["Part Demand / Part"]||""),String(r["Lot"]||""),String(r["Attribute"]||""),String(r["QTY / Qty Transaksi"]||""),String(r["QTY Konversi"]||""),String(r["UM Konversi"]||""),String(r["Remarks 1"]||""),String(r["Remarks 2"]||""),String(r["Nomor Service Job / Catatan"]||"")]);} doc.setFontSize(16); doc.setTextColor(30,41,59); doc.text("Data SJOB Part Bekas",mg.left,16); doc.setFontSize(8); doc.setTextColor(100,116,139); doc.text("Dicetak: "+new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}),mg.left,22); doc.autoTable({head:[col],body:rows,startY:26,margin:mg,styles:{font:"helvetica",fontStyle:"normal",fontSize:6.5,lineColor:[226,232,240],lineWidth:0.3,textColor:[51,65,85],cellPadding:2.5,overflow:"linebreak"},headStyles:{fillColor:[248,250,252],textColor:[30,41,59],fontStyle:"bold",fontSize:7,lineColor:[203,213,225],lineWidth:0.4,halign:"center",valign:"middle"},columnStyles:{0:{halign:"center",cellWidth:8},4:{halign:"center",cellWidth:14},5:{halign:"center",cellWidth:14}},alternateRowStyles:{fillColor:[248,250,252]},theme:"grid"}); var fy=doc.lastAutoTable.finalY,gtA=calcTotal(data3,"QTY / Qty Transaksi"),gtB=calcTotal(data3,"QTY Konversi"); doc.setFontSize(8); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("TOTAL QTY:",uw-80,fy+7,{align:"right"}); doc.setTextColor(5,150,105); doc.text(String(gtA),uw-60,fy+7,{align:"left"}); doc.setTextColor(30,41,59); doc.text("TOTAL KONV.:",uw-30,fy+7,{align:"right"}); doc.setTextColor(37,99,235); doc.text(String(gtB),uw-10,fy+7,{align:"left"}); doc.save("Data SJOB Part Bekast.pdf"); showToast("File PDF Part Demand berhasil diunduh.","success"); });
+
+    // Tab 4 (SURAT JALAN)
+    $("#excelBtn4").addEventListener("click", function() { 
+        if(!data4.length){showToast("Tidak ada data.","danger");return;} 
+        var wb = XLSX.utils.book_new();
+        var wsData = [];
+        
+        wsData.push(["SURAT JALAN"]); wsData.push([]);
+        wsData.push(["Kepada Yth : Bp. MUHAMMAD FAUZI"]);
+        wsData.push(["D/a. Ktr. POLYTRON"]);
+        wsData.push(["SERVICE CENTER"]);
+        wsData.push(["JL. FRANS SEDA NO. 08 KOMPLEK RUKO ( RUKOKU )"]);
+        wsData.push(["KEL. FATULULI"]);
+        wsData.push(["KEC. OEBOBO - KOTA KUPANG"]);
+        wsData.push(["TELP. +62 813 2816 2259"]);
+        wsData.push([]); wsData.push(["Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"})]); wsData.push([]);
+        wsData.push(["No", "Catatan", "Part", "Qty Reservasi", "Part Demand", "Serial Number", "Teknisi Perbaikan"]);
+        var gt=calcTotal(data4,"Qty Reservasi"); 
+        for(var i=0;i<data4.length;i++){var r=data4[i]; wsData.push([i+1, r["Catatan"]||"", r["Part"]||"", r["Qty Reservasi"]||"", r["Part Demand"]||"", r["Serial Number"]||"", r["Teknisi Perbaikan"]||"" ]); }
+        wsData.push(["", "", "TOTAL QTY", gt, "", "", ""]); wsData.push([]); 
+        wsData.push(["", "Dibuat oleh,", "Mengetahui,", "Expedisi,", "Diterima,"]);
+        wsData.push([]); wsData.push([]); wsData.push([]); 
+        wsData.push(["", "(.........................)", "(.........................)", "(.........................)", "(.........................)"]);
+        var ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws["!cols"]=[{wch:6},{wch:30},{wch:30},{wch:14},{wch:14},{wch:25},{wch:25}];
+        XLSX.utils.book_append_sheet(wb,ws,"Surat Jalan");
+        XLSX.writeFile(wb,"Surat Jalan.xlsx");
+        showToast("File Excel berhasil diunduh.","success"); 
+    });
+
+    $("#pdfBtn4").addEventListener("click", function() { 
+        if(!data4.length){showToast("Tidak ada data.","danger");return;} 
+        var doc=new jsPDF({orientation:"p",unit:"mm",format:"a4"}), pw=doc.internal.pageSize.getWidth(), mg={left:12,right:12};
+        var col=["No","Catatan","Part","Qty","Demand","Serial","Teknisi"], rows=[]; 
+        
+        // Header
+        doc.setFontSize(18); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("SURAT JALAN", pw/2, 20, {align: "center"});
+        doc.setFontSize(11); doc.setFont(undefined,"bold"); doc.text("Kepada Yth : Bp. MUHAMMAD FAUZI", mg.left, 35);
+        doc.setFontSize(10); doc.setFont(undefined,"normal");
+        doc.text("D/a. Ktr. POLYTRON", mg.left, 41); doc.text("SERVICE CENTER", mg.left, 46);
+        doc.text("JL. FRANS SEDA NO. 08 KOMPLEK RUKO ( RUKOKU )", mg.left, 51);
+        doc.text("KEL. FATULULI", mg.left, 56); doc.text("KEC. OEBOBO - KOTA KUPANG", mg.left, 61);
+        doc.text("TELP. +62 813 2816 2259", mg.left, 66);
+        doc.setFontSize(10); doc.text("Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"}), pw - mg.right, 66, {align: "right"});
+        doc.setDrawColor(200,200,200); doc.line(mg.left, 71, pw-mg.right, 71);
+        
+        // Tabel
+        for(var i=0;i<data4.length;i++){var r=data4[i]; rows.push([String(i+1),String(r["Catatan"]||""),String(r["Part"]||""),String(r["Qty Reservasi"]||""),String(r["Part Demand"]||""),String(r["Serial Number"]||""),String(r["Teknisi Perbaikan"]||"")]);} 
+        doc.autoTable({head:[col], body:rows, startY:74, margin:mg, styles:{font:"helvetica",fontStyle:"normal",fontSize:7,lineColor:[226,232,240],lineWidth:0.3,textColor:[51,65,85],cellPadding:2,overflow:"linebreak"}, headStyles:{fillColor:[240,240,240],textColor:[0,0,0],fontStyle:"bold",fontSize:8,lineColor:[200,200,200],halign:"center",valign:"middle"}, columnStyles:{0:{halign:"center",cellWidth:8},3:{halign:"center",cellWidth:14}}, theme:"grid"}); 
+        
+        var fy=doc.lastAutoTable.finalY, gt=calcTotal(data4,"Qty Reservasi"); 
+        var totX = mg.left + 58; 
+        doc.setFontSize(10); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); 
+        doc.text("TOTAL QTY:", totX, fy+7, {align:"left"}); 
+        doc.setTextColor(5,150,105); doc.text(String(gt), totX + 25, fy+7, {align:"left"}); 
+
+        // TEKS PENUTUP
+        var closingY = fy + 18;
+        if(closingY > 260) { doc.addPage(); closingY = 20; }
+        doc.setFontSize(10); doc.setTextColor(30,41,59); doc.setFont(undefined,"normal");
+        doc.text("Demikian Surat Jalan ini kami buat untuk dapat dipergunakan sebagaimana mestinya.", mg.left, closingY);
+        doc.text("Atas perhatian dan kerja samanya kami ucapkan terima kasih.", mg.left, closingY + 5);
+
+        // Tanda Tangan
+        var signY = closingY + 20; 
+        if(signY > 250) { doc.addPage(); signY = 20; }
+        doc.setFontSize(10); doc.setTextColor(30,41,59); doc.setFont(undefined,"normal");
+        var signW = (pw - mg.left - mg.right) / 4;
+        var x1 = mg.left + (signW/2);
+        var x2 = mg.left + signW + (signW/2);
+        var x3 = mg.left + (2*signW) + (signW/2);
+        var x4 = mg.left + (3*signW) + (signW/2);
+
+        doc.text("Dibuat oleh,", x1, signY, {align:"center"});
+        doc.text("Mengetahui,", x2, signY, {align:"center"});
+        doc.text("Expedisi,", x3, signY, {align:"center"});
+        doc.text("Diterima,", x4, signY, {align:"center"});
+
+        var lineY = signY + 25;
+        doc.setDrawColor(150,150,150);
+        doc.line(x1-20, lineY, x1+20, lineY);
+        doc.line(x2-20, lineY, x2+20, lineY);
+        doc.line(x3-20, lineY, x3+20, lineY);
+        doc.line(x4-20, lineY, x4+20, lineY);
+        
+        doc.save("Surat Jalan.pdf"); 
+        showToast("File PDF berhasil diunduh.","success"); 
+    });
+
+    // Tab 5 (SURAT JALAN 2) - MODIFIKASI: HAPUS ALAMAT, PENUTUP, & TANDA TANGAN
+    $("#excelBtn5").addEventListener("click", function() { 
+        if(!data5.length){showToast("Tidak ada data.","danger");return;} 
+        var wb = XLSX.utils.book_new();
+        var wsData = [];
+        
+        // Hanya Judul dan Tanggal
+        wsData.push(["SURAT JALAN 2"]); 
+        wsData.push([]);
+        wsData.push(["Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"})]); 
+        wsData.push([]);
+        
+        // Header Tabel
+        wsData.push(["No", "Catatan", "Part", "Qty Reservasi", "Part Demand", "Serial Number", "Teknisi Perbaikan", "Lamanya Hari"]);
+        
+        var gt=calcTotal(data5,"Qty Reservasi"); 
+        for(var i=0;i<data5.length;i++){
+            var r=data5[i]; 
+            wsData.push([
+                i+1, 
+                r["Catatan"]||"", 
+                r["Part"]||"", 
+                r["Qty Reservasi"]||"", 
+                r["Part Demand"]||"", 
+                r["Serial Number"]||"", 
+                r["Teknisi Perbaikan"]||"", 
+                r["Lamanya Hari"]||""
+            ]); 
         }
-        handleFile(file).then(rows => {
-            if (!rows || rows.length === 0) {
-                alert("File tidak mengandung data baris.");
-                return;
-            }
-            addDataRows(rows);
-            fileInput.value = '';
-            document.getElementById('fileNameDisplay').innerText = 'Belum ada file';
-        }).catch(err => {
-            alert("Error memproses file: " + (err.message || err));
-        });
+        // Total
+        wsData.push(["", "", "TOTAL QTY", gt, "", "", "", ""]); 
+        
+        // Batas akhir dokumen (Tidak ada penutup/tanda tangan)
+        
+        var ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws["!cols"]=[{wch:6},{wch:30},{wch:30},{wch:14},{wch:14},{wch:25},{wch:25},{wch:15}];
+        
+        XLSX.utils.book_append_sheet(wb,ws,"Surat Jalan 2");
+        XLSX.writeFile(wb,"Surat Jalan 2.xlsx");
+        showToast("File Excel berhasil diunduh.","success"); 
     });
 
-    document.getElementById('clearAllBtn').addEventListener('click', () => {
-        clearAllData();
+    $("#pdfBtn5").addEventListener("click", function() { 
+        if(!data5.length){showToast("Tidak ada data.","danger");return;} 
+        var doc=new jsPDF({orientation:"l", unit:"mm", format:"a4"}), pw=doc.internal.pageSize.getWidth(), mg={left:12, right:12}; 
+        var col=["No","Catatan","Part","Qty","Demand","Serial","Teknisi","Lama Hari"], rows=[]; 
+        
+        // Header HANYA Judul dan Tanggal (Alamat dihapus)
+        doc.setFontSize(18); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("SURAT JALAN 2", pw/2, 20, {align: "center"});
+        
+        doc.setFontSize(10); doc.setTextColor(100,116,139); doc.setFont(undefined,"normal");
+        doc.text("Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"}), pw - mg.right, 20, {align: "right"});
+        
+        doc.setDrawColor(200,200,200); doc.line(mg.left, 26, pw-mg.right, 26);
+        
+        // Tabel
+        for(var i=0;i<data5.length;i++){
+            var r=data5[i]; 
+            rows.push([
+                String(i+1),
+                String(r["Catatan"]||""),
+                String(r["Part"]||""),
+                String(r["Qty Reservasi"]||""),
+                String(r["Part Demand"]||""),
+                String(r["Serial Number"]||""),
+                String(r["Teknisi Perbaikan"]||""),
+                String(r["Lamanya Hari"]||"")
+            ]);
+        } 
+        doc.autoTable({
+            head:[col], 
+            body:rows, 
+            startY:30, 
+            margin:mg, 
+            styles:{font:"helvetica",fontStyle:"normal",fontSize:7,lineColor:[226,232,240],lineWidth:0.3,textColor:[51,65,85],cellPadding:2,overflow:"linebreak"}, 
+            headStyles:{fillColor:[240,240,240],textColor:[0,0,0],fontStyle:"bold",fontSize:8,lineColor:[200,200,200],halign:"center",valign:"middle"}, 
+            columnStyles:{0:{halign:"center",cellWidth:8},3:{halign:"center",cellWidth:10},7:{halign:"center",cellWidth:15}}, 
+            theme:"grid"
+        }); 
+        
+        // Total
+        var fy=doc.lastAutoTable.finalY, gt=calcTotal(data5,"Qty Reservasi"); 
+        var totX = mg.left + 60; 
+        doc.setFontSize(10); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); 
+        doc.text("TOTAL QTY:", totX, fy+7, {align:"left"}); 
+        doc.setTextColor(5,150,105); doc.text(String(gt), totX + 25, fy+7, {align:"left"}); 
+
+        // DIPERBARUI: Bagian Penutup dan Tanda Tangan DIHAPUS sesuai permintaan.
+        // File PDF berakhir di Total Qty.
+        
+        doc.save("Surat Jalan 2.pdf"); 
+        showToast("File PDF berhasil diunduh.","success"); 
     });
 
-    document.getElementById('downloadExcelBtn').addEventListener('click', () => {
-        downloadAsExcel();
-    });
+    function appendNotes(exp) { var n=$$("#manualNotesContainer .note-input"),h=false; for(var i=0;i<n.length;i++){if(n[i].innerText.trim()){h=true;break;}} if(!h)return; exp.push({"No":"","Catatan":"","Part":"","Qty Transaksi":"","Part Demand":"","Serial Number":"","Teknisi Perbaikan":""}); exp.push({"No":"Keterangan:","Catatan":"","Part":"","Qty Transaksi":"","Part Demand":"","Serial Number":"","Teknisi Perbaikan":""}); for(var i=0;i<n.length;i++){var t=n[i].innerText.trim();if(t)exp.push({"No":(i+1)+".","Catatan":t,"Part":"","Qty Transaksi":"","Part Demand":"","Serial Number":"","Teknisi Perbaikan":""});} }
+    function appendNotesPDF(doc,fy){var n=$$("#manualNotesContainer .note-input"),nc=[];for(var i=0;i<n.length;i++){var t=n[i].innerText.trim();if(t)nc.push((i+1)+". "+t);} if(!nc.length)return;var cy=fy+18;if(cy>260){doc.addPage();cy=20;} doc.setFontSize(10);doc.setTextColor(100,116,139);doc.setFont(undefined,"bold");doc.text("Keterangan Tambahan:",10,cy);doc.setFontSize(8);doc.setTextColor(51,65,85);doc.setFont(undefined,"normal");for(var i=0;i<nc.length;i++){cy+=6;if(cy>280){doc.addPage();cy=20;}doc.text(nc[i],10,cy);}}
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            document.getElementById('fileNameDisplay').innerText = file.name;
-        } else {
-            document.getElementById('fileNameDisplay').innerText = 'Belum ada file';
-        }
-    });
-
-    renderTable();
+    renderTable1(); renderTable2(); renderTable3(); renderTable4(); renderTable5();
+})();
 </script>
 </body>
 </html>
