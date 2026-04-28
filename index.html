@@ -320,7 +320,7 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
             <button class="tab-button" data-tab="tab2" role="tab" aria-selected="false" aria-controls="tab2"><i class="fas fa-file-export"></i> Proses & Export</button>
             <button class="tab-button" data-tab="tab3" role="tab" aria-selected="false" aria-controls="tab3"><i class="fas fa-exchange-alt"></i> Extract SJOB</button>
             <button class="tab-button" data-tab="tab4" role="tab" aria-selected="false" aria-controls="tab4"><i class="fas fa-boxes"></i> Surat Jalan</button>
-            <button class="tab-button" data-tab="tab5" role="tab" aria-selected="false" aria-controls="tab5"><i class="fas fa-truck-loading"></i> Surat Jalan 2</button>
+            <button class="tab-button" data-tab="tab5" role="tab" aria-selected="false" aria-controls="tab5"><i class="fas fa-truck-loading"></i> Tagihan RETURN</button>
         </nav>
 
         <!-- TAB 1 -->
@@ -446,8 +446,8 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
                 <button class="btn-secondary" id="pdfBtn5" aria-label="Unduh sebagai PDF"><i class="fas fa-file-pdf"></i> Download PDF</button>
                 <span class="btn-group-info"><span class="badge" id="stockCountBadge5">0</span> baris surat jalan</span>
             </div>
-            <label for="search5" class="sr-only">Cari data di tabel surat jalan 2</label>
-            <input type="text" id="search5" placeholder="Cari data surat jalan 2...">
+            <label for="search5" class="sr-only">Cari data di tabel tagihan return</label>
+            <input type="text" id="search5" placeholder="Cari data tagihan return...">
             <div class="table-container">
                 <table id="table5"><thead><tr>
                     <th class="col-no">No. Urut</th><th>Catatan</th><th>Part</th><th>Qty Reservasi</th><th>Part Demand</th><th>Serial Number</th><th>Teknisi Perbaikan</th><th>Disetujui Pada</th><th>Lamanya Hari</th><th class="col-action">Aksi</th>
@@ -712,7 +712,7 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
     
     function renderTable5() { 
         var frag=document.createDocumentFragment(), filtered=getFiltered(data5,currentFilter5), total=0; 
-        if(!filtered.length && !data5.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="10"><div class="empty-state"><i class="fas fa-truck-loading"></i><p>Belum ada data surat jalan 2.</p></div></td>'; frag.appendChild(tr); } 
+        if(!filtered.length && !data5.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="10"><div class="empty-state"><i class="fas fa-truck-loading"></i><p>Belum ada data tagihan return.</p></div></td>'; frag.appendChild(tr); } 
         else if(!filtered.length){ var tr=document.createElement("tr"); tr.innerHTML='<td colspan="10"><div class="empty-state"><i class="fas fa-search"></i><p>Tidak ditemukan.</p></div></td>'; frag.appendChild(tr); } 
         else { 
             for(var fi=0; fi<filtered.length; fi++){ 
@@ -771,7 +771,7 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
             } 
         } 
     });
-    tbody5.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx5); var row=data5[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab2(); syncToTab3(); syncToTab4(); } data5.splice(ri,1); stockBadge5.textContent=data5.length; renderTable5(); showToast("Baris surat jalan 2 berhasil dihapus.","danger"); } });
+    tbody5.addEventListener("click", function(e) { if(e.target.closest(".btn-danger")){ var ri=parseInt(e.target.closest(".btn-danger").dataset.ridx5); var row=data5[ri]; if(row && row._sourceIdx !== undefined){ selectedIndexes.delete(row._sourceIdx); updateCheckAllState(); renderTable1(); syncToTab2(); syncToTab3(); syncToTab4(); } data5.splice(ri,1); stockBadge5.textContent=data5.length; renderTable5(); showToast("Baris tagihan return berhasil dihapus.","danger"); } });
 
     // ========== EXPORTS ==========
     // Tab 2
@@ -870,14 +870,14 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
         showToast("File PDF berhasil diunduh.","success"); 
     });
 
-    // Tab 5 (SURAT JALAN 2) - MODIFIKASI: HAPUS ALAMAT, PENUTUP, & TANDA TANGAN
+    // Tab 5 (TAGIHAN RETURN) - MODIFIKASI: HAPUS ALAMAT, PENUTUP, & TANDA TANGAN
     $("#excelBtn5").addEventListener("click", function() { 
         if(!data5.length){showToast("Tidak ada data.","danger");return;} 
         var wb = XLSX.utils.book_new();
         var wsData = [];
         
         // Hanya Judul dan Tanggal
-        wsData.push(["SURAT JALAN 2"]); 
+        wsData.push(["TAGIHAN RETURN"]); 
         wsData.push([]);
         wsData.push(["Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"})]); 
         wsData.push([]);
@@ -907,8 +907,8 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
         var ws = XLSX.utils.aoa_to_sheet(wsData);
         ws["!cols"]=[{wch:6},{wch:30},{wch:30},{wch:14},{wch:14},{wch:25},{wch:25},{wch:15}];
         
-        XLSX.utils.book_append_sheet(wb,ws,"Surat Jalan 2");
-        XLSX.writeFile(wb,"Surat Jalan 2.xlsx");
+        XLSX.utils.book_append_sheet(wb,ws,"Tagihan Return");
+        XLSX.writeFile(wb,"Tagihan Return.xlsx");
         showToast("File Excel berhasil diunduh.","success"); 
     });
 
@@ -918,7 +918,7 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
         var col=["No","Catatan","Part","Qty","Demand","Serial","Teknisi","Lama Hari"], rows=[]; 
         
         // Header HANYA Judul dan Tanggal (Alamat dihapus)
-        doc.setFontSize(18); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("SURAT JALAN 2", pw/2, 20, {align: "center"});
+        doc.setFontSize(18); doc.setTextColor(30,41,59); doc.setFont(undefined,"bold"); doc.text("TAGIHAN RETURN", pw/2, 20, {align: "center"});
         
         doc.setFontSize(10); doc.setTextColor(100,116,139); doc.setFont(undefined,"normal");
         doc.text("Tanggal: " + new Date().toLocaleDateString("id-ID", {day:"numeric", month:"long", year:"numeric"}), pw - mg.right, 20, {align: "right"});
@@ -960,7 +960,7 @@ tfoot td { padding: 12px; border-bottom: none; border-top: 2px solid var(--borde
         // DIPERBARUI: Bagian Penutup dan Tanda Tangan DIHAPUS sesuai permintaan.
         // File PDF berakhir di Total Qty.
         
-        doc.save("Surat Jalan 2.pdf"); 
+        doc.save("Tagihan Return.pdf"); 
         showToast("File PDF berhasil diunduh.","success"); 
     });
 
